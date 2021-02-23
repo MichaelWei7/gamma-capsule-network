@@ -35,26 +35,17 @@ from capsule.gamma_metrics import v_map
 # Hyperparameters and cmd args
 #
 argparser = argparse.ArgumentParser(description="Train gamma-capsule networks on multiple GPUs")
-argparser.add_argument("--learning_rate", default=0.001, type=float, 
-  help="Learning rate of adam")
-argparser.add_argument("--reconstruction_weight", default=0.0005, type=float, 
-  help="Learning rate of adam")
-argparser.add_argument("--log_dir", default="experiments/robust", 
-  help="Learning rate of adam")    
-argparser.add_argument("--batch_size", default=32, type=int, 
-  help="Learning rate of adam")
-argparser.add_argument("--enable_tf_function", default=True, type=bool, 
-  help="Enable tf.function for faster execution")
-argparser.add_argument("--num_classes", default=10, type=int, 
-  help="Number of classes of the training set")
-argparser.add_argument("--epochs", default=10, type=int, 
-  help="Defines the number of epochs to train the network")
-argparser.add_argument("--gamma_robust", default=True, type=bool, 
-  help="Training to learn gamma-robust useful features")
+argparser.add_argument("--learning_rate", default=0.001, type=float,                  help="Learning rate of adam")
+argparser.add_argument("--reconstruction_weight", default=0.0005, type=float,                 help="Learning rate of adam")
+argparser.add_argument("--log_dir", default="experiments/robust",                 help="Learning rate of adam")    
+argparser.add_argument("--batch_size", default=32, type=int,                  help="Learning rate of adam")
+argparser.add_argument("--enable_tf_function", default=True, type=bool,                 help="Enable tf.function for faster execution")
+argparser.add_argument("--num_classes", default=10, type=int,                 help="Number of classes of the training set")
+argparser.add_argument("--epochs", default=10, type=int,                  help="Defines the number of epochs to train the network")
+argparser.add_argument("--gamma_robust", default=True, type=bool,                 help="Training to learn gamma-robust useful features")
 
 # Load hyperparameters from cmd args and update with json file
 args = argparser.parse_args()
-
 
 #
 # Functions
@@ -185,12 +176,11 @@ def train(train_ds, all_test_ds, class_names):
 
     # Define functions for distributed training
     def distributed_train_step(dataset_inputs):
-      return strategy.experimental_run_v2(train_step,
-                                                        args=(dataset_inputs,))
+      return strategy.run(train_step, args=(dataset_inputs,))
       #return strategy.reduce(tf.distribute.ReduceOp.MEAN, per_replica_losses, axis=None)
 
     def distributed_test_step(dataset_inputs):
-      return strategy.experimental_run_v2(test_step, args=(dataset_inputs, ))
+      return strategy.run(test_step, args=(dataset_inputs, ))
     
     if args.enable_tf_function:
       distributed_train_step = tf.function(distributed_train_step)
